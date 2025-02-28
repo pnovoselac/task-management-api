@@ -6,11 +6,13 @@ import { TaskModule } from './task/task.module';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
+import { UserModule } from './user/user.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
     MikroOrmModule.forRoot(),
-    TaskModule,
+    TaskModule, UserModule, ProjectModule
   ],
   controllers: [TaskController],
   providers: [AppService],
