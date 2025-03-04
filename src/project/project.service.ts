@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Project } from './project.entity';
 import { ProjectRepository } from './project.repository';
 import { CreateProjectDto } from './project.dto';
+import { wrap } from '@mikro-orm/core';
+import { NotFoundError } from 'rxjs';
 @Injectable()
 export class ProjectService {
   constructor(
@@ -28,14 +30,16 @@ export class ProjectService {
     const project = await this.projectRepository.findOne({ id });
     if (!project) return null;
 
-    Object.assign(project, updates);
-    await this.projectRepository.persist(project).flush();
+    wrap(project).assign(updates);
+    await this.projectRepository.flush();
     return project;
   }
 
   async deleteProject(id: number): Promise<boolean> {
     const project = await this.projectRepository.findOne({ id });
-    if (!project) return false;
+    if (!project){
+      throw new NotFoundException(`Project with ID ${id} not found`)
+    }
 
     await this.projectRepository.removeAndFlush(project);
     return true;

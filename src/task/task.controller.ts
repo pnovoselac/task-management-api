@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { TaskService } from './task.service';
-import { Task } from './task.entity';
-import { CreateTaskDto } from './task.dto';
+import { Controller, Get, Post, Body, Param, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
+import { TaskService } from './task.service.js';
+import { Task } from './task.entity.js';
+import { CreateTaskDto } from './task.dto.js';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('tasks')
 export class TaskController {
@@ -17,23 +18,9 @@ export class TaskController {
     return await this.taskService.findAllTasks();
   }
 
-  @Get('/project/:projectId')
-  async findTasksByProject(@Param('projectId') projectId: number) {
-    return await this.taskService.findTasksByProject(projectId);
-  }
+  @Get('filter')
+  async filterTasks(@Query('projectId') projectId:number, @Query('priority') priority: string, @Query('status') status: string, @Query('due_date') dueDate: Date): Promise<Task[]>{
+    return await this.taskService.filterTasks({projectId, priority, status, dueDate});
 
-  @Get('priority/:priority')
-  async findTasksByPriority(@Param('priority') priority: string){
-    return await this.taskService.findTasksByPriority(priority);
-  }
-
-  @Get('status/:status')
-  async findTasksByStatus(@Param('status') status: string){
-    return await this.taskService.findTasksByStatus(status);
-  }
-
-  @Get('due_date/:dueDate')
-  async findTasksByDueDate(@Param('dueDate') dueDate: Date){
-    return await this.taskService.findTasksByDueDate(dueDate);
   }
 }
