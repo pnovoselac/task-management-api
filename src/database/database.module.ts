@@ -9,7 +9,6 @@ import { PostgreSqlDriver } from '@mikro-orm/postgresql';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
     }),
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
