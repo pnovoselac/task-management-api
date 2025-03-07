@@ -21,6 +21,11 @@ export class TaskController {
   @Get('filter')
   async filterTasks(@Query('projectId') projectId:number, @Query('priority') priority: string, @Query('status') status: string, @Query('due_date') dueDate: Date){
     return await this.taskService.filterTasks({projectId, priority, status, dueDate});
+  }
 
+  @Post(':id/attachment')
+  @UseInterceptors(FileInterceptor('file'))
+  async addAttachmentFile(@Param('id') taskId: number, @UploadedFile() file: Express.Multer.File,): Promise<any> {
+    return this.taskService.addAttachementFile(taskId, file)
   }
 }

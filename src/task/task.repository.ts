@@ -1,10 +1,12 @@
 import { AnyEntity, EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { Task } from './task.entity';
-import { Project } from 'src/project/project.entity';
+import { Project } from '../project/project.entity';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class TaskRepository extends EntityRepository<Task> {
+    
     persist(entity: AnyEntity | AnyEntity[]): EntityManager {
         return this.em.persist(entity);
     }
@@ -28,5 +30,9 @@ export class TaskRepository extends EntityRepository<Task> {
     async findProjectById(projectId: number): Promise<Project> {
         return await this.em.findOneOrFail(Project, { id: projectId });
       }
+
+    async findOwnerById(ownerId: string): Promise<User>{
+        return await this.em.findOneOrFail(User,{id: ownerId})
+    }
       
 }

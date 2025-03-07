@@ -1,5 +1,3 @@
-import { Project } from "src/project/project.entity";
-
 export class CreateTaskDto {
     title!: string;
     description!: string;
@@ -9,5 +7,6 @@ export class CreateTaskDto {
     projectId!: number;
     createdAt: Date;
     updatedAt: Date;
+    ownerId!: string;
   }
   
