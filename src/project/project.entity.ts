@@ -1,5 +1,5 @@
 import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
-import { Task } from "src/task/task.entity";
+import { Task } from "task/task.entity";
 
 @Entity()
 export class Project{

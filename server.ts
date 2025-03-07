@@ -1,6 +1,7 @@
 import { MikroORM, PostgreSqlDriver } from '@mikro-orm/postgresql';
 import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
 
+async function bootstrap() {
 const orm = await MikroORM.init({
     metadataProvider: TsMorphMetadataProvider,
     driver: PostgreSqlDriver,
@@ -10,3 +11,4 @@ const orm = await MikroORM.init({
 });
 console.log(orm.em); 
 console.log(orm.schema);
+};
