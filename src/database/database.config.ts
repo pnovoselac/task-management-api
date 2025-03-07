@@ -1,5 +1,7 @@
 import { registerAs } from '@nestjs/config';
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 export default registerAs('database', () => ({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
