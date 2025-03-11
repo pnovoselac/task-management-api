@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -20,10 +21,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@nestjs/*": ["node_modules/@nestjs/*"],
-    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
 }
