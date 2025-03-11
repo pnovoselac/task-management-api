@@ -19,8 +19,8 @@ export class TaskController {
   }
 
   @Get('filter')
-  async filterTasks(@Query('projectId') projectId:number, @Query('priority') priority: string, @Query('status') status: string, @Query('due_date') dueDate: Date){
-    return await this.taskService.filterTasks({projectId, priority, status, dueDate});
+  async filterTasksBy(@Query() createTaskDto: CreateTaskDto){
+    return await this.taskService.filterTasksBy(createTaskDto);
   }
 
   @Post(':id/attachment')

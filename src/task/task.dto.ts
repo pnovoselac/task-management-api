@@ -5,8 +5,8 @@ export class CreateTaskDto {
     priority!: string;
     dueDate!: Date;
     projectId!: number;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt!: Date;
+    updatedAt!: Date;
     ownerId!: string;
   }
   

@@ -4,8 +4,8 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { Task } from './task.entity';
 import { CreateTaskDto } from './task.dto';
 import { FirebaseStorageService } from '../firebase/firebase.storage.service';
-import { User } from '../user/user.entity';
-import { UserRepository } from '../user/user.repository';
+import { FilterQuery } from '@mikro-orm/core';
+import { ITaskFilters } from './taskfilters';
 
 @Injectable()
 export class TaskService {
@@ -29,15 +29,17 @@ export class TaskService {
   async findAllTasks(): Promise<Task[]> {
     return await this.taskRepository.findAll();
   }
+  
 
-  async filterTasks(filters:{ownerId?:string; projectId?:number; priority?:string; status?:string; dueDate?:Date}){
-    const query: any={};
-    if (filters.ownerId) query['owner'] = { ownerId: filters.ownerId} ;
-    if (filters.projectId) query['project'] = { projectId: filters.projectId };
-    if (filters.priority) query['priority'] = filters.priority;
-    if (filters.status) query['status'] = filters.status;
-    if (filters.dueDate) query['dueDate'] = filters.dueDate;
-
+  async filterTasksBy(filters: ITaskFilters): Promise<Task[]> {
+    const query: FilterQuery<Task> = {};
+  
+    if (filters.owner) query.owner=filters.owner;
+    if (filters.project) query.project=filters.project;
+    if (filters.priority) query.priority = filters.priority;
+    if (filters.status) query.status = filters.status;
+    if (filters.dueDate) query.dueDate = filters.dueDate;
+  
     return await this.taskRepository.find(query);
   }
 
