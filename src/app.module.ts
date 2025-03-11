@@ -6,7 +6,6 @@ import { ProjectModule } from './project/project.module.js';
 import { FirebaseModule } from './firebase/firebase.module';
 import { UserModule } from './user/user.module.js';
 import { AuthModule } from './auth/auth.module';
-import { AuthGuard } from './auth/auth.guard.js';
 
 @Module({
   imports: [
@@ -19,6 +18,6 @@ import { AuthGuard } from './auth/auth.guard.js';
     AuthModule
   ],
   controllers: [],
-  providers: [AuthGuard],
+  providers: [],
 })
 export class AppModule {}

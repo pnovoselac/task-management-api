@@ -8,15 +8,18 @@ export class AuthService {
   constructor(
     @Inject('FirebaseAdmin') private readonly firebaseAdmin: typeof admin,
   ){}
-  async registerUser(email: string, password: string): Promise<{ uid: string;  email: string }> {
+  async registerUser(email: string, password: string): Promise<{ uid: string; email: string }> {
     try {
       const userRecord = await admin.auth().createUser({ email, password });
-
-      console.log('Firebase user created:', userRecord);
-      return { uid: userRecord.uid, email: String(userRecord.email)};
+      return { uid: userRecord.uid, email: String(userRecord.email) };
     } catch (error) {
-      console.error('Error during registration:', error.message);
-      throw new Error('User registration failed');
+      if (error instanceof Error) {
+        console.error('Registration error:', error.message);
+        throw new Error('User registration failed');
+      } else {
+        console.error('Unexpected error:', error);
+        throw new Error('An unexpected error occurred during registration');
+      }
     }
   }
   async loginUser(email: string, password:string) {
@@ -54,26 +57,22 @@ export class AuthService {
   }
   async validateRequest(req): Promise<boolean> {
     const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-      console.log('Authorization header not provided.');
-      return false;
-    }
+    if (!authHeader) return false;
+  
     const [bearer, token] = authHeader.split(' ');
-    if (bearer !== 'Bearer' || !token) {
-      console.log('Invalid authorization format. Expected "Bearer <token>".');
-      return false;
-    }
+    if (bearer !== 'Bearer' || !token) return false;
+  
     try {
       const decodedToken = await this.firebaseAdmin.auth().verifyIdToken(token);
-      console.log('Decoded Token:', decodedToken);
       return true;
     } catch (error) {
-      if (error.code === 'auth/id-token-expired') {
-        console.error('Token has expired.');
-      } else if (error.code === 'auth/invalid-id-token') {
-        console.error('Invalid ID token provided.');
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const err = error as { code: string };
+        if (err.code === 'auth/id-token-expired') console.error('Token expired');
+        else if (err.code === 'auth/invalid-id-token') console.error('Invalid token');
+        else console.error('Error verifying token:', err.code);
       } else {
-        console.error('Error verifying token:', error);
+        console.error('Unexpected error:', error);
       }
       return false;
     }
