@@ -1,7 +1,7 @@
-import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { TaskRepository } from './task.repository';
-import { Project } from '../project/project.entity';
-import { User } from '../user/user.entity';
+import { Entity, ManyToOne, PrimaryKey, Property } from "@mikro-orm/core";
+import { TaskRepository } from "./task.repository";
+import { Project } from "../project/project.entity";
+import { User } from "../user/user.entity";
 
 @Entity({ repository: () => TaskRepository })
 export class Task {
@@ -14,10 +14,10 @@ export class Task {
   @Property({ nullable: true })
   description?: string;
 
-  @Property({ default: 'To Do' })
+  @Property({ default: "To Do" })
   status!: string;
 
-  @Property({ default: 'Low' })
+  @Property({ default: "Low" })
   priority!: string;
 
   @Property({ nullable: true })
@@ -29,12 +29,12 @@ export class Task {
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
   updatedAt: Date = new Date();
 
-  @Property({nullable: true})
+  @Property({ nullable: true })
   attachmentFileUrl?: string;
 
-  @ManyToOne(()=>Project)
+  @ManyToOne(() => Project)
   project!: Project;
 
-  @ManyToOne(()=>User)
+  @ManyToOne(() => User)
   owner!: User;
 }

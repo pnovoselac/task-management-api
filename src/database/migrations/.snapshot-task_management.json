@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -61,9 +59,7 @@
       "indexes": [
         {
           "keyName": "project_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -102,9 +98,7 @@
       "indexes": [
         {
           "keyName": "user_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -233,9 +227,7 @@
       "indexes": [
         {
           "keyName": "task_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -246,25 +238,17 @@
       "foreignKeys": {
         "task_project_id_foreign": {
           "constraintName": "task_project_id_foreign",
-          "columnNames": [
-            "project_id"
-          ],
+          "columnNames": ["project_id"],
           "localTableName": "public.task",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.project",
           "updateRule": "cascade"
         },
         "task_owner_id_foreign": {
           "constraintName": "task_owner_id_foreign",
-          "columnNames": [
-            "owner_id"
-          ],
+          "columnNames": ["owner_id"],
           "localTableName": "public.task",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.user",
           "updateRule": "cascade"
         }
