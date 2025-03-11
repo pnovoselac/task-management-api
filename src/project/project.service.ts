@@ -9,7 +9,7 @@ import { NotFoundError } from 'rxjs';
 export class ProjectService {
   constructor(
     @InjectRepository(Project) private readonly projectRepository: ProjectRepository,
-  ) {}
+  ) {console.log("typeof project repository ",typeof this.projectRepository.removeAndFlush);}
 
   async createproject(createProjectDto: CreateProjectDto): Promise<Project> {
       const project = this.projectRepository.create({
@@ -23,25 +23,34 @@ export class ProjectService {
   }
 
   async findProjectById(id: number): Promise<Project | null> {
-    return await this.projectRepository.findOne({ id }, { populate: ['tasks'] });
+    const project=await this.projectRepository.findOne({ id }, { populate: ['tasks'] });
+    if (!project){
+      throw new NotFoundException(`Project with ID ${id} not found`)
+    }
+    return project
   }
 
   async updateProject(id: number, updates: Partial<Project>): Promise<Project | null> {
     const project = await this.projectRepository.findOne({ id });
-    if (!project) return null;
+    if (!project){
+      throw new NotFoundException(`Project with ID ${id} not found`)
+    }
 
     wrap(project).assign(updates);
     await this.projectRepository.flush();
     return project;
   }
 
-  async deleteProject(id: number): Promise<boolean> {
+  async deleteProject(id: number): Promise<{statusCode:number, message: string}> {
     const project = await this.projectRepository.findOne({ id });
     if (!project){
       throw new NotFoundException(`Project with ID ${id} not found`)
     }
 
     await this.projectRepository.removeAndFlush(project);
-    return true;
+    return {
+      statusCode: 204,
+      message: `Project with ID ${id} deleted successfully`,
+    };
   }
 }
