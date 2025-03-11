@@ -28,8 +28,8 @@ export class ProjectController {
         return this.projectService.updateProject(id,updates);
     }
 
-    @Delete('id')
-    async deleteProject(@Param('id') id:number):Promise<boolean>{
+    @Delete(':id')
+    async deleteProject(@Param('id') id:number):Promise<{statusCode:number, message: string}>{
         return this.projectService.deleteProject(id);
     }
 

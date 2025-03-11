@@ -1,7 +1,8 @@
 import { Collection, Entity, OneToMany, PrimaryKey, Property } from "@mikro-orm/core";
 import { Task } from "task/task.entity";
+import { ProjectRepository } from "./project.repository";
 
-@Entity()
+@Entity({repository: () => ProjectRepository})
 export class Project{
     @PrimaryKey()
     id!: number;
@@ -10,7 +11,7 @@ export class Project{
     title!: string;
 
     @Property()
-    description: string;
+    description!: string;
 
     @Property({onCreate: () => new Date()})
     createdAt: Date = new Date();
