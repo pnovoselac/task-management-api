@@ -1,19 +1,23 @@
-import { Module } from '@nestjs/common';
-import { TaskController } from './task/task.controller';
-import { TaskService } from './task/task.service';
-import { TaskRepository } from './task/task.repository';
-import { TaskModule } from './task/task.module';
-import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { AppService } from './app.service';
-import { AppController } from './app.controller';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { DatabaseModule } from "./database/database.module.js";
+import { TaskModule } from "./task/task.module.js";
+import { ProjectModule } from "./project/project.module.js";
+import { FirebaseModule } from "./firebase/firebase.module";
+import { UserModule } from "./user/user.module.js";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
-    MikroOrmModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
     TaskModule,
+    ProjectModule,
+    FirebaseModule,
+    UserModule,
+    AuthModule,
   ],
-  controllers: [TaskController],
-  providers: [AppService],
-  exports:[AppService]
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

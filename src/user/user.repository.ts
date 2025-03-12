@@ -3,13 +3,12 @@ import {
   EntityManager,
   EntityRepository,
 } from "@mikro-orm/postgresql";
-import { Injectable } from "@nestjs/common";
-import { Task } from "./task.entity";
-import { Project } from "../project/project.entity";
-import { User } from "../user/user.entity";
+import { Inject, Injectable } from "@nestjs/common";
+import { User } from "./user.entity";
+import { RegisterUserDto } from "./register-user.dto";
 
 @Injectable()
-export class TaskRepository extends EntityRepository<Task> {
+export class UserRepository extends EntityRepository<User> {
   persist(entity: AnyEntity | AnyEntity[]): EntityManager {
     return this.em.persist(entity);
   }
@@ -28,13 +27,5 @@ export class TaskRepository extends EntityRepository<Task> {
 
   async flush(): Promise<void> {
     return this.em.flush();
-  }
-
-  async findProjectById(projectId: number): Promise<Project> {
-    return await this.em.findOneOrFail(Project, { id: projectId });
-  }
-
-  async findOwnerById(ownerId: string): Promise<User> {
-    return await this.em.findOneOrFail(User, { id: ownerId });
   }
 }
