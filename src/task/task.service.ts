@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Post } from "@nestjs/common";
 import { TaskRepository } from "./task.repository";
 import { InjectRepository } from "@mikro-orm/nestjs";
 import { Task } from "./task.entity";
-import { CreateTaskDto } from "./task.dto";
+import { CreateTaskDto } from "./create-task.dto";
 import { FirebaseStorageService } from "../firebase/firebase.storage.service";
 import { FilterQuery } from "@mikro-orm/core";
 import { ITaskFilters } from "./taskfilters";
@@ -11,15 +11,15 @@ import { ITaskFilters } from "./taskfilters";
 export class TaskService {
   constructor(
     @InjectRepository(Task) private readonly taskRepository: TaskRepository,
-    private readonly firebaseStorageService: FirebaseStorageService,
+    private readonly firebaseStorageService: FirebaseStorageService
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const project = await this.taskRepository.findProjectById(
-      createTaskDto.projectId,
+      createTaskDto.projectId
     );
     const owner = await this.taskRepository.findOwnerById(
-      createTaskDto.ownerId,
+      createTaskDto.ownerId
     );
     const task = this.taskRepository.create({
       ...createTaskDto,
@@ -48,7 +48,7 @@ export class TaskService {
 
   async addAttachementFile(
     taskId: number,
-    file: Express.Multer.File,
+    file: Express.Multer.File
   ): Promise<any> {
     const task = await this.taskRepository.findOne(taskId);
     if (!task) {
