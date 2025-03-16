@@ -5,33 +5,43 @@ import { ProjectRepository } from "./project.repository";
 import { CreateProjectDto } from "./project.dto";
 import { wrap } from "@mikro-orm/core";
 import { NotFoundError } from "rxjs";
+import { User } from "user/user.entity";
+import { UserRepository } from "user/user.repository";
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
-    private readonly projectRepository: ProjectRepository,
-  ) {
-    console.log(
-      "typeof project repository ",
-      typeof this.projectRepository.removeAndFlush,
-    );
-  }
+    private readonly projectRepository: ProjectRepository
+  ) {}
 
-  async createproject(createProjectDto: CreateProjectDto): Promise<Project> {
-    const project = this.projectRepository.create({
+  async createProject(
+    createProjectDto: CreateProjectDto,
+    ownerId: string
+  ): Promise<Project> {
+    const owner = await this.projectRepository.findOwnerById(ownerId);
+    if (!owner) {
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
+    }
+    const project = await this.projectRepository.create({
       ...createProjectDto,
+      owner,
     });
-    return await this.projectRepository.upsert(project);
+    await this.projectRepository.persistAndFlush(project);
+    owner.ownedProjects.add(project);
+    await this.projectRepository.persistAndFlush(owner);
+    return project;
   }
 
   async findAllProjects(): Promise<Project[]> {
-    return await this.projectRepository.findAll({ populate: ["tasks"] });
+    return await this.projectRepository.findAll({
+      populate: ["tasks", "members"],
+    });
   }
 
   async findProjectById(id: number): Promise<Project | null> {
     const project = await this.projectRepository.findOne(
       { id },
-      { populate: ["tasks"] },
+      { populate: ["tasks", "members"] }
     );
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -41,7 +51,7 @@ export class ProjectService {
 
   async updateProject(
     id: number,
-    updates: Partial<Project>,
+    updates: Partial<Project>
   ): Promise<Project | null> {
     const project = await this.projectRepository.findOne({ id });
     if (!project) {
@@ -52,9 +62,18 @@ export class ProjectService {
     await this.projectRepository.flush();
     return project;
   }
+  async addMembersToProject(
+    projectId: number,
+    memberIds: string[]
+  ): Promise<Project> {
+    return await this.projectRepository.addMembersToProject(
+      projectId,
+      memberIds
+    );
+  }
 
   async deleteProject(
-    id: number,
+    id: number
   ): Promise<{ statusCode: number; message: string }> {
     const project = await this.projectRepository.findOne({ id });
     if (!project) {
