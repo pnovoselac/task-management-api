@@ -1,15 +1,17 @@
 import { Inject, Injectable } from "@nestjs/common";
 import * as admin from "firebase-admin";
-import axios from "axios";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject("FirebaseAdmin") private readonly firebaseAdmin: typeof admin,
+    private readonly httpService: HttpService
   ) {}
   async registerUser(
     email: string,
-    password: string,
+    password: string
   ): Promise<{ uid: string; email: string }> {
     try {
       const userRecord = await admin.auth().createUser({ email, password });
@@ -49,12 +51,15 @@ export class AuthService {
   }
   private async sendPostRequest(url: string, data: any) {
     try {
-      const response = await axios.post(url, data, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await firstValueFrom(
+        this.httpService.post(url, data, {
+          headers: { "Content-Type": "application/json" },
+        })
+      );
       return response.data;
     } catch (error) {
-      console.log("error", error);
+      console.error("Error in sendPostRequest:", error);
+      throw error;
     }
   }
   async validateRequest(req): Promise<boolean> {
