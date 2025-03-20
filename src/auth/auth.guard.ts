@@ -4,18 +4,29 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { AuthService } from "./auth.service";
+import * as admin from "firebase-admin";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const user = await this.authService.validateRequest(request);
-    if (!user) {
-      throw new UnauthorizedException("Invalid or expired token");
+    const authHeader = request.headers["authorization"];
+
+    if (!authHeader) {
+      throw new UnauthorizedException("Provide authorization header.");
     }
-    request.user = user;
-    return true;
+
+    const [bearer, token] = authHeader.split(" ");
+    if (bearer !== "Bearer" || !token) {
+      throw new UnauthorizedException("Invalid format Authorization header.");
+    }
+
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      request.user = decodedToken;
+      return true;
+    } catch (error: any) {
+      throw new UnauthorizedException("Invalid or expired token.");
+    }
   }
 }
