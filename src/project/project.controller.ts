@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   UseGuards,
+  Request,
 } from "@nestjs/common";
 import { ProjectService } from "./project.service";
 import { CreateProjectDto } from "./project.dto";
@@ -20,11 +21,13 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   async createProject(
     @Body() createProjectDto: CreateProjectDto,
-    @Query("ownerId") ownerId: string
+    @Request() req
   ): Promise<Project> {
-    return this.projectService.createProject(createProjectDto, ownerId);
+    const user = req.user;
+    return this.projectService.createProject(createProjectDto, user.uid);
   }
 
   @Post(":projectId/add-members")
@@ -36,8 +39,10 @@ export class ProjectController {
   }
 
   @Get()
-  async findAllProjects() {
-    return await this.projectService.findAllProjects();
+  @UseGuards(AuthGuard)
+  async findAllProjects(@Request() req) {
+    const user = req.user;
+    return await this.projectService.findAllProjects(user?.uid);
   }
 
   @Get(":id")
@@ -50,16 +55,17 @@ export class ProjectController {
   @UseGuards(AuthGuard)
   async updateProject(
     @Param("id") id: number,
-    @Body() updates: Partial<Project>
+    @Body() updates: Partial<Project>,
+    @Request() req
   ): Promise<Project | null> {
-    return this.projectService.updateProject(id, updates);
+    const user = req.user;
+    return this.projectService.updateProject(id, updates, user.uid);
   }
 
   @Delete(":id")
   @UseGuards(AuthGuard)
-  async deleteProject(
-    @Param("id") id: number
-  ): Promise<{ statusCode: number; message: string }> {
-    return this.projectService.deleteProject(id);
+  async deleteProject(@Param("id") id: number, @Request() req): Promise<void> {
+    const user = req.user;
+    await this.projectService.deleteProject(id, user.uid);
   }
 }
