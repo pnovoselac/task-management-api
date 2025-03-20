@@ -1,6 +1,5 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./create-user.dto";
-import { UpdateUserDto } from "./update-user.dto";
 import { User } from "./user.entity";
 import { UserRepository } from "./user.repository";
 import { InjectRepository } from "@mikro-orm/nestjs";
@@ -30,29 +29,21 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
 
   async registerUser(registerUserDto: RegisterUserDto): Promise<User> {
-    try {
-      console.log("Register DTO:", registerUserDto);
-      const firebaseUser = await this.firebaseAuthService.registerUser(
-        registerUserDto.email,
-        registerUserDto.password
-      );
-      const user = this.createUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-      });
-      return user;
-    } catch (error) {
-      throw new Error("User registration failed");
-    }
+    console.log("Register DTO:", registerUserDto);
+    const firebaseUser = await this.firebaseAuthService.registerUser(
+      registerUserDto.email,
+      registerUserDto.password
+    );
+    const user = this.createUser({
+      id: firebaseUser.uid,
+      email: firebaseUser.email,
+    });
+    return user;
   }
 
   async loginUser(loginUserDto: LoginUserDto) {

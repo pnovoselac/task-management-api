@@ -28,6 +28,6 @@ export class User {
   @OneToMany(() => Project, (project) => project.owner)
   ownedProjects = new Collection<Project>(this);
 
-  @ManyToOne(() => Project)
+  @ManyToMany(() => Project, (project) => project.members)
   memberProjects = new Collection<Project>(this);
 }
