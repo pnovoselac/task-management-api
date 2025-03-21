@@ -26,7 +26,6 @@ export class AuthService {
       const userRecord = await this.firebaseAdmin
         .auth()
         .createUser({ email, password });
-      console.log("New user:", userRecord);
 
       return { uid: userRecord.uid, email: userRecord.email! };
     } catch (error) {
@@ -45,9 +44,9 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException("Invalid email");
     }
-    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.configService.get<string>(
-      "FIREBASE_API_KEY"
-    )}`;
+    const apiUrl = this.configService.get<string>("FIREBASE_API_URL");
+    const apiKey = this.configService.get<string>("FIREBASE_API_KEY");
+    const url = `${apiUrl}key=${apiKey}`;
 
     try {
       const response = await firstValueFrom(
@@ -61,7 +60,6 @@ export class AuthService {
       return { idToken: response.data.idToken };
     } catch (error: any) {
       const firebaseError = error.response?.data?.error?.message;
-      console.log(firebaseError);
       if (firebaseError.includes("INVALID_LOGIN_CREDENTIALS")) {
         throw new UnauthorizedException("Invalid password.");
       } else {

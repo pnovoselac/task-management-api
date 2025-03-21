@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { FileService } from "../file/file.service";
+import { Task } from "../task/task.entity";
 
 @Injectable()
 export class FirebaseStorageService {
   constructor(
-    @Inject("FirebaseStorage")
-    private readonly bucket
+    @Inject("FirebaseStorage") private readonly bucket,
+    private readonly fileService: FileService
   ) {}
 
   async uploadFile(
@@ -15,29 +16,21 @@ export class FirebaseStorageService {
     try {
       const fileUpload = this.bucket.file(destination);
 
+      console.log("Uploading file to Firebase Storage...");
       await fileUpload.save(file.buffer, {
         metadata: { contentType: file.mimetype },
       });
 
       await fileUpload.makePublic();
-      return fileUpload.publicUrl();
-    } catch (error) {
-      throw new HttpException(
-        "Cant load file.",
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
-    }
-  }
 
-  async getAllFilesForTask(taskId: number): Promise<string[]> {
-    try {
-      const [files] = await this.bucket.getFiles({
-        prefix: `tasks/${taskId}/`,
-      });
-      return files.map((file) => file.publicUrl());
+      const publicUrl = fileUpload.publicUrl();
+      console.log("File uploaded successfully to Firebase:", publicUrl);
+
+      return publicUrl;
     } catch (error) {
+      console.error("Error during file upload:", error);
       throw new HttpException(
-        "Cant load files.",
+        "Can't upload file.",
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

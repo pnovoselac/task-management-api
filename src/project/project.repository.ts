@@ -31,23 +31,26 @@ export class ProjectRepository extends EntityRepository<Project> {
   async findOwnerById(ownerId: string): Promise<User> {
     return await this.em.findOneOrFail(User, { id: ownerId });
   }
+
+  async findMembersById(memberIds: string[]): Promise<User[]> {
+    return await this.em.find(User, { id: { $in: memberIds } });
+  }
+
   async addMembersToProject(
     projectId: number,
-    memberIds: string[]
+    members: User[]
   ): Promise<Project> {
     const project = await this.findOneOrFail(
       { id: projectId },
       { populate: ["members"] }
     );
 
-    for (const memberId of memberIds) {
-      const userRepository = this.em.getRepository(User);
-      const member = await userRepository.findOneOrFail({ id: memberId });
-
+    for (const member of members) {
       if (!project.members.contains(member)) {
         project.members.add(member);
       }
     }
+
     await this.flush();
     return project;
   }

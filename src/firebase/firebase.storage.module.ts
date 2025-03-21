@@ -1,8 +1,6 @@
 import { Module, Global } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as admin from "firebase-admin";
-const { initializeApp, cert } = require("firebase-admin/app");
-const { getStorage } = require("firebase-admin/storage");
 
 @Global()
 @Module({
