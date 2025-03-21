@@ -9,10 +9,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { CreateUserDto } from "./create-user.dto";
-import { UpdateUserDto } from "./update-user.dto";
 import { RegisterUserDto } from "./register-user.dto";
-import { User } from "./user.entity";
 import { LoginUserDto } from "./login-user.dto";
 
 @Controller("user")
@@ -20,8 +17,9 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post("register")
-  async registerUser(@Body() registerUserDto: RegisterUserDto): Promise<User> {
-    return this.userService.registerUser(registerUserDto);
+  async registerUser(@Body() registerUserDto: RegisterUserDto) {
+    const user = await this.userService.registerUser(registerUserDto);
+    return { email: user.email, id: user.id };
   }
 
   @Post("login")
@@ -37,11 +35,6 @@ export class UserController {
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.userService.findOne(+id);
-  }
-
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
   }
 
   @Delete(":id")

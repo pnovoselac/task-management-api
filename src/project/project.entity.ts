@@ -1,12 +1,15 @@
 import {
   Collection,
   Entity,
+  ManyToMany,
+  ManyToOne,
   OneToMany,
   PrimaryKey,
   Property,
 } from "@mikro-orm/core";
-import { Task } from "task/task.entity";
+import { Task } from "../task/task.entity";
 import { ProjectRepository } from "./project.repository";
+import { User } from "../user/user.entity";
 
 @Entity({ repository: () => ProjectRepository })
 export class Project {
@@ -27,4 +30,10 @@ export class Project {
 
   @OneToMany(() => Task, (task) => task.project)
   tasks = new Collection<Task>(this);
+
+  @ManyToOne(() => User)
+  owner!: User;
+
+  @OneToMany(() => User, (user) => user.memberProjects)
+  members = new Collection<User>(this);
 }

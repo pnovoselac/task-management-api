@@ -1,21 +1,18 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./create-user.dto";
-import { UpdateUserDto } from "./update-user.dto";
 import { User } from "./user.entity";
 import { UserRepository } from "./user.repository";
 import { InjectRepository } from "@mikro-orm/nestjs";
 import { RegisterUserDto } from "./register-user.dto";
 import * as admin from "firebase-admin";
 import { LoginUserDto } from "./login-user.dto";
-import { error } from "console";
-import axios from "axios";
 import { AuthService } from "auth/auth.service";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: UserRepository,
-    private readonly firebaseAuthService: AuthService,
+    private readonly firebaseAuthService: AuthService
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -25,15 +22,11 @@ export class UserService {
   }
 
   findAll() {
-    return `This action returns all user`;
+    return this.userRepository.findAll();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {
@@ -41,26 +34,22 @@ export class UserService {
   }
 
   async registerUser(registerUserDto: RegisterUserDto): Promise<User> {
-    try {
-      console.log("Register DTO:", registerUserDto);
-      const firebaseUser = await this.firebaseAuthService.registerUser(
-        registerUserDto.email,
-        registerUserDto.password,
-      );
-      const user = this.createUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email,
-      });
-      return user;
-    } catch (error) {
-      throw new Error("User registration failed");
-    }
+    console.log("Register DTO:", registerUserDto);
+    const firebaseUser = await this.firebaseAuthService.registerUser(
+      registerUserDto.email,
+      registerUserDto.password
+    );
+    const user = this.createUser({
+      id: firebaseUser.uid,
+      email: firebaseUser.email,
+    });
+    return user;
   }
 
   async loginUser(loginUserDto: LoginUserDto) {
     return this.firebaseAuthService.loginUser(
       loginUserDto.email,
-      loginUserDto.password,
+      loginUserDto.password
     );
   }
 }

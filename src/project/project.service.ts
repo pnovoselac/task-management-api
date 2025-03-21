@@ -1,37 +1,56 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@mikro-orm/nestjs";
-import { Project } from "./project.entity";
+import { Project, Visibility } from "./project.entity";
 import { ProjectRepository } from "./project.repository";
 import { CreateProjectDto } from "./project.dto";
 import { wrap } from "@mikro-orm/core";
-import { NotFoundError } from "rxjs";
+
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
-    private readonly projectRepository: ProjectRepository,
-  ) {
-    console.log(
-      "typeof project repository ",
-      typeof this.projectRepository.removeAndFlush,
-    );
-  }
+    private readonly projectRepository: ProjectRepository
+  ) {}
 
-  async createproject(createProjectDto: CreateProjectDto): Promise<Project> {
+  async createProject(
+    createProjectDto: CreateProjectDto,
+    ownerId: string
+  ): Promise<Project> {
+    const owner = await this.projectRepository.findOwnerById(ownerId);
+    if (!owner) {
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
+    }
     const project = this.projectRepository.create({
       ...createProjectDto,
+      owner,
     });
-    return await this.projectRepository.upsert(project);
+    await this.projectRepository.persistAndFlush(project);
+    owner.ownedProjects.add(project);
+    await this.projectRepository.persistAndFlush(owner);
+    return project;
   }
 
-  async findAllProjects(): Promise<Project[]> {
-    return await this.projectRepository.findAll({ populate: ["tasks"] });
+  async findAllProjects(userId?: string): Promise<Project[]> {
+    if (userId) {
+      return await this.projectRepository.find({
+        $or: [
+          { visibility: Visibility.PUBLIC },
+          { owner: userId },
+          { members: { $in: [userId] } },
+        ],
+      });
+    }
+    return await this.projectRepository.find({ visibility: Visibility.PUBLIC });
   }
 
   async findProjectById(id: number): Promise<Project | null> {
     const project = await this.projectRepository.findOne(
       { id },
-      { populate: ["tasks"] },
+      { populate: ["tasks"] }
     );
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -42,10 +61,14 @@ export class ProjectService {
   async updateProject(
     id: number,
     updates: Partial<Project>,
-  ): Promise<Project | null> {
+    userId: string
+  ): Promise<Project> {
     const project = await this.projectRepository.findOne({ id });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
+    }
+    if (project.owner.id !== userId) {
+      throw new ForbiddenException("You are not the owner of this project");
     }
 
     wrap(project).assign(updates);
@@ -53,18 +76,27 @@ export class ProjectService {
     return project;
   }
 
-  async deleteProject(
-    id: number,
-  ): Promise<{ statusCode: number; message: string }> {
+  async addMembersToProject(
+    projectId: number,
+    memberIds: string[]
+  ): Promise<Project> {
+    return await this.projectRepository.addMembersToProject(
+      projectId,
+      memberIds
+    );
+  }
+  async deleteProject(id: number, userId: string): Promise<void> {
     const project = await this.projectRepository.findOne({ id });
+
     if (!project) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
+      throw new NotFoundException(
+        `Project with ID ${id} not found, cant delete nonexisted project`
+      );
+    }
+    if (project.owner.id !== userId) {
+      throw new ForbiddenException("You are not the owner of this project");
     }
 
     await this.projectRepository.removeAndFlush(project);
-    return {
-      statusCode: 204,
-      message: `Project with ID ${id} deleted successfully`,
-    };
   }
 }

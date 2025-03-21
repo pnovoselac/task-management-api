@@ -7,44 +7,65 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  UseGuards,
+  Request,
 } from "@nestjs/common";
 import { ProjectService } from "./project.service";
 import { CreateProjectDto } from "./project.dto";
 import { Project } from "./project.entity";
+import { AuthGuard } from "auth/auth.guard";
 
 @Controller("projects")
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   async createProject(
     @Body() createProjectDto: CreateProjectDto,
+    @Request() req
   ): Promise<Project> {
-    return this.projectService.createproject(createProjectDto);
+    const user = req.user;
+    return this.projectService.createProject(createProjectDto, user.uid);
+  }
+
+  @Post(":projectId/add-members")
+  async addMembers(
+    @Param("projectId") projectId: number,
+    @Body("memberIds") memberIds: string[]
+  ): Promise<Project> {
+    return await this.projectService.addMembersToProject(projectId, memberIds);
   }
 
   @Get()
-  async findAllProjects() {
-    return await this.projectService.findAllProjects();
+  @UseGuards(AuthGuard)
+  async findAllProjects(@Request() req) {
+    const user = req.user;
+    return await this.projectService.findAllProjects(user?.uid);
   }
 
   @Get(":id")
+  @UseGuards(AuthGuard)
   async findProjectById(@Param("id") id: number): Promise<Project | null> {
     return await this.projectService.findProjectById(id);
   }
 
-  @Patch("id")
+  @Patch(":id")
+  @UseGuards(AuthGuard)
   async updateProject(
     @Param("id") id: number,
     @Body() updates: Partial<Project>,
+    @Request() req
   ): Promise<Project | null> {
-    return this.projectService.updateProject(id, updates);
+    const user = req.user;
+    return this.projectService.updateProject(id, updates, user.uid);
   }
 
   @Delete(":id")
-  async deleteProject(
-    @Param("id") id: number,
-  ): Promise<{ statusCode: number; message: string }> {
-    return this.projectService.deleteProject(id);
+  @UseGuards(AuthGuard)
+  async deleteProject(@Param("id") id: number, @Request() req): Promise<void> {
+    const user = req.user;
+    await this.projectService.deleteProject(id, user.uid);
   }
 }

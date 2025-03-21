@@ -18,4 +18,11 @@ export default defineConfig({
     pathTs: "./src/database/migrations",
   },
   debug: true,
+  seeder: {
+    path: "./src/database/seeders",
+    defaultSeeder: "DatabaseSeeder",
+    glob: "!(*.d).{js,ts}",
+    emit: "ts",
+    fileName: (className: string) => className,
+  },
 });

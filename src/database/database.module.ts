@@ -3,6 +3,7 @@ import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { PostgreSqlDriver } from "@mikro-orm/postgresql";
 import databaseConfig from "./database.config";
+import { SeedManager } from "@mikro-orm/seeder";
 
 @Global()
 @Module({
@@ -26,6 +27,14 @@ import databaseConfig from "./database.config";
         },
         debug: true,
         useMikroORMConfigLoader: false,
+        extensions: [SeedManager],
+        seeder: {
+          path: "./src/database/seeders",
+          defaultSeeder: "DatabaseSeeder",
+          glob: "!(*.d).{js,ts}",
+          emit: "ts",
+          fileName: (className: string) => className,
+        },
       }),
     }),
   ],

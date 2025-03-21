@@ -10,8 +10,10 @@ import {
 } from "@nestjs/common";
 import { TaskService } from "./task.service.js";
 import { Task } from "./task.entity.js";
-import { CreateTaskDto } from "./task.dto.js";
+import { CreateTaskDto } from "./create-task.dto.js";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ITaskFilters } from "./taskfilters.js";
+import { filter } from "rxjs";
 
 @Controller("tasks")
 export class TaskController {
@@ -23,20 +25,18 @@ export class TaskController {
   }
 
   @Get()
-  async findAllTasks() {
+  async findAllTasks(@Query() filters: ITaskFilters) {
+    if (Object.keys(filters).length > 0) {
+      return await this.taskService.filterTasksBy(filters);
+    }
     return await this.taskService.findAllTasks();
-  }
-
-  @Get("filter")
-  async filterTasksBy(@Query() createTaskDto: CreateTaskDto) {
-    return await this.taskService.filterTasksBy(createTaskDto);
   }
 
   @Post(":id/attachment")
   @UseInterceptors(FileInterceptor("file"))
   async addAttachmentFile(
     @Param("id") taskId: number,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File
   ): Promise<any> {
     return this.taskService.addAttachementFile(taskId, file);
   }
