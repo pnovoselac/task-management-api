@@ -3,10 +3,11 @@ import {
   EntityManager,
   EntityRepository,
 } from "@mikro-orm/postgresql";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Task } from "./task.entity";
 import { Project } from "../project/project.entity";
 import { User } from "../user/user.entity";
+import { File } from "../file/file.entity";
 
 @Injectable()
 export class TaskRepository extends EntityRepository<Task> {
@@ -35,6 +36,41 @@ export class TaskRepository extends EntityRepository<Task> {
   }
 
   async findOwnerById(ownerId: string): Promise<User> {
-    return await this.em.findOneOrFail(User, { id: ownerId });
+    if (!ownerId) {
+      throw new NotFoundException("Owner ID is missing");
+    }
+
+    const owner = await this.em.findOne(User, { id: ownerId });
+    if (!owner) {
+      throw new NotFoundException(`User not found with ID ${ownerId}`);
+    }
+
+    return owner;
+  }
+
+  async attachFile(taskId: number, fileUrl: string): Promise<Task> {
+    const task = await this.findOne(taskId, { populate: ["files"] });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
+    }
+
+    const file = this.em.create(File, { url: fileUrl, task });
+    await this.em.persistAndFlush(file);
+
+    task.files.add(file);
+    await this.flush();
+
+    return task;
+  }
+
+  async getFilesForTask(taskId: number): Promise<string[]> {
+    const task = await this.findOne(taskId, { populate: ["files"] });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
+    }
+
+    return task.files.getItems().map((file) => file.url);
   }
 }
