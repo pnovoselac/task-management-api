@@ -14,7 +14,7 @@ import {
 import { ProjectService } from "./project.service";
 import { CreateProjectDto } from "./project.dto";
 import { Project } from "./project.entity";
-import { AuthGuard } from "auth/auth.guard";
+import { AuthGuard } from "../auth/auth.guard";
 
 @Controller("projects")
 export class ProjectController {
@@ -30,12 +30,12 @@ export class ProjectController {
     return this.projectService.createProject(createProjectDto, user.uid);
   }
 
-  @Post(":projectId/add-members")
-  async addMembers(
-    @Param("projectId") projectId: number,
+  @Post(":id/members")
+  async addMembersToProject(
+    @Param("id") projectId: number,
     @Body("memberIds") memberIds: string[]
-  ): Promise<Project> {
-    return await this.projectService.addMembersToProject(projectId, memberIds);
+  ) {
+    return this.projectService.addMembersToProject(projectId, memberIds);
   }
 
   @Get()
