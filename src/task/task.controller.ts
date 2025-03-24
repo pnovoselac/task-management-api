@@ -7,18 +7,22 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  Delete,
+  HttpException,
+  HttpStatus,
+  Patch,
+  NotFoundException,
 } from "@nestjs/common";
-import { TaskService } from "./task.service.js";
+import { TaskService } from "./task.service";
 import { Task } from "./task.entity.js";
-import { CreateTaskDto } from "./create-task.dto.js";
+import { CreateTaskDto } from "./create-task.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ITaskFilters } from "./taskfilters.js";
-import { filter } from "rxjs";
+import { ITaskFilters } from "./taskfilters";
+import { UpdateTaskDto } from "./update-task.dto";
 
 @Controller("tasks")
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
-
   @Post()
   async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.taskService.createTask(createTaskDto);
@@ -32,12 +36,32 @@ export class TaskController {
     return await this.taskService.findAllTasks();
   }
 
-  @Post(":id/attachment")
+  @Post(":id/attach-file")
   @UseInterceptors(FileInterceptor("file"))
-  async addAttachmentFile(
-    @Param("id") taskId: number,
+  async attachFileToTask(
+    @Param("id") id: number,
     @UploadedFile() file: Express.Multer.File
   ): Promise<any> {
-    return this.taskService.addAttachementFile(taskId, file);
+    if (!file) {
+      throw new NotFoundException("No file provided");
+    }
+
+    const task = await this.taskService.attachFile(id, file);
+    return {
+      task,
+    };
+  }
+
+  @Patch(":id")
+  async updateTask(
+    @Param("id") id: number,
+    @Body() updateTaskDto: UpdateTaskDto
+  ) {
+    return this.taskService.updateTask(id, updateTaskDto);
+  }
+
+  @Delete(":id")
+  async deleteTask(@Param("id") id: number) {
+    return this.taskService.deleteTask(id);
   }
 }
