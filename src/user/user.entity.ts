@@ -18,8 +18,6 @@ export class User {
   id!: string;
 
   @Property()
-  @IsNotEmpty()
-  @IsEmail()
   email!: string;
 
   @OneToMany(() => Task, (task) => task.owner)

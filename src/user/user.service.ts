@@ -6,7 +6,7 @@ import { InjectRepository } from "@mikro-orm/nestjs";
 import { RegisterUserDto } from "./register-user.dto";
 import * as admin from "firebase-admin";
 import { LoginUserDto } from "./login-user.dto";
-import { AuthService } from "auth/auth.service";
+import { AuthService } from "../auth/auth.service";
 
 @Injectable()
 export class UserService {
