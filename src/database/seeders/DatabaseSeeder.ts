@@ -4,14 +4,15 @@ import { Project, Visibility } from "../../project/project.entity";
 import { User } from "../../user/user.entity";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "../../app.module";
-import { HttpException, HttpStatus } from "@nestjs/common";
 import { AuthService } from "../../auth/auth.service";
-import { Task } from "../../task/task.entity";
-import { File } from "../../file/file.entity";
+import { Priority, Status, Task } from "../../task/task.entity";
 
 export class DatabaseSeeder extends Seeder {
+  constructor() {
+    super();
+  }
   async run(em: EntityManager): Promise<void> {
-    const email = "user215@example.com";
+    const email = "userprvi@example.com";
     const password = "Lozinka123";
 
     const app = await NestFactory.create(AppModule);
@@ -29,6 +30,7 @@ export class DatabaseSeeder extends Seeder {
 
         await em.persistAndFlush(localUser);
       }
+
       const project = em.create(Project, {
         title: "Seeder projekt",
         description: "Ovo će biti opis za seeder projekt",
@@ -41,11 +43,13 @@ export class DatabaseSeeder extends Seeder {
 
       const task = em.create(Task, {
         title: "taskić",
-        status: "To Do",
-        priority: "Max",
+        status: Status.IN_PROGRESS,
+        priority: Priority.MEDIUM,
         project: project,
         owner: localUser.id,
       });
+
+      await em.persistAndFlush([task, project]);
     } finally {
       await app.close();
     }

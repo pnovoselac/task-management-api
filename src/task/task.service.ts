@@ -6,6 +6,7 @@ import { CreateTaskDto } from "./create-task.dto";
 import { FirebaseStorageService } from "../firebase/firebase.storage.service";
 import { FilterQuery } from "@mikro-orm/core";
 import { ITaskFilters } from "./taskfilters";
+import { UpdateTaskDto } from "./update-task.dto";
 
 @Injectable()
 export class TaskService {
@@ -21,17 +22,22 @@ export class TaskService {
     const owner = await this.taskRepository.findOwnerById(
       createTaskDto.ownerId
     );
+    console.log(owner);
+
     const task = this.taskRepository.create({
       ...createTaskDto,
       project,
       owner,
     });
+
     await this.taskRepository.persistAndFlush(task);
     return task;
   }
 
   async findAllTasks(): Promise<Task[]> {
-    return await this.taskRepository.findAll();
+    return await this.taskRepository.findAll({
+      populate: ["files"],
+    });
   }
 
   async filterTasksBy(filters: ITaskFilters): Promise<Task[]> {
@@ -45,20 +51,41 @@ export class TaskService {
 
     return await this.taskRepository.find(query);
   }
+  async attachFile(taskId: number, file: Express.Multer.File): Promise<Task> {
+    const task = await this.taskRepository.findOne(taskId, {
+      populate: ["files"],
+    });
 
-  async addAttachementFile(
-    taskId: number,
-    file: Express.Multer.File
-  ): Promise<any> {
-    const task = await this.taskRepository.findOne(taskId);
     if (!task) {
-      throw new NotFoundException(`Task with ${taskId} not found!`);
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
     }
 
-    const fileUrl = await this.firebaseStorageService.uploadFile(file, taskId);
-    task.attachmentFileUrl = fileUrl;
-    await this.taskRepository.persistAndFlush(task);
+    const destination = `tasks/${task.id}/${Date.now()}-${file.originalname}`;
+    const fileUrl = await this.firebaseStorageService.uploadFile(
+      file,
+      destination
+    );
+    return await this.taskRepository.attachFile(taskId, fileUrl);
+  }
 
+  async getFilesForTask(taskId: number): Promise<string[]> {
+    if (!taskId) throw new NotFoundException(`Cannot get files for ${taskId}`);
+    return await this.taskRepository.getFilesForTask(taskId);
+  }
+
+  async updateTask(id: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    const task = await this.taskRepository.findOne(id);
+    if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
+
+    Object.assign(task, updateTaskDto);
+    await this.taskRepository.persistAndFlush(task);
     return task;
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    const task = await this.taskRepository.findOne(id);
+    if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
+
+    await this.taskRepository.removeAndFlush(task);
   }
 }

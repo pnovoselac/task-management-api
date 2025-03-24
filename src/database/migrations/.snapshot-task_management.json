@@ -25,15 +25,6 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
-        },
-        "member_projects_id": {
-          "name": "member_projects_id",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
         }
       },
       "name": "user",
@@ -51,20 +42,7 @@
         }
       ],
       "checks": [],
-      "foreignKeys": {
-        "user_member_projects_id_foreign": {
-          "constraintName": "user_member_projects_id_foreign",
-          "columnNames": [
-            "member_projects_id"
-          ],
-          "localTableName": "public.user",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.project",
-          "updateRule": "cascade"
-        }
-      },
+      "foreignKeys": {},
       "nativeEnums": {}
     },
     {
@@ -127,6 +105,20 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
+        },
+        "visibility": {
+          "name": "visibility",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'private'",
+          "enumItems": [
+            "public",
+            "private"
+          ],
+          "mappedType": "enum"
         }
       },
       "name": "project",
@@ -193,25 +185,33 @@
         },
         "status": {
           "name": "status",
-          "type": "varchar(255)",
+          "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
           "default": "'To Do'",
-          "mappedType": "string"
+          "enumItems": [
+            "To Do",
+            "In Progress",
+            "Completed"
+          ],
+          "mappedType": "enum"
         },
         "priority": {
           "name": "priority",
-          "type": "varchar(255)",
+          "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
           "default": "'Low'",
-          "mappedType": "string"
+          "enumItems": [
+            "Low",
+            "Medium",
+            "High"
+          ],
+          "mappedType": "enum"
         },
         "due_date": {
           "name": "due_date",
@@ -242,16 +242,6 @@
           "nullable": false,
           "length": 6,
           "mappedType": "datetime"
-        },
-        "attachment_file_url": {
-          "name": "attachment_file_url",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
         },
         "project_id": {
           "name": "project_id",
@@ -311,6 +301,146 @@
             "id"
           ],
           "referencedTableName": "public.user",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "unsigned": false,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "url": {
+          "name": "url",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "file",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "file_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "file_task_id_foreign": {
+          "constraintName": "file_task_id_foreign",
+          "columnNames": [
+            "task_id"
+          ],
+          "localTableName": "public.file",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.task",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "project_id": {
+          "name": "project_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        }
+      },
+      "name": "project_members",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "project_members_pkey",
+          "columnNames": [
+            "project_id",
+            "user_id"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "project_members_project_id_foreign": {
+          "constraintName": "project_members_project_id_foreign",
+          "columnNames": [
+            "project_id"
+          ],
+          "localTableName": "public.project_members",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.project",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        },
+        "project_members_user_id_foreign": {
+          "constraintName": "project_members_user_id_foreign",
+          "columnNames": [
+            "user_id"
+          ],
+          "localTableName": "public.project_members",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user",
+          "deleteRule": "cascade",
           "updateRule": "cascade"
         }
       },
