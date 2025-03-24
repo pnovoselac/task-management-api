@@ -4,7 +4,7 @@ import { UserService } from "./user.service";
 import { UserController } from "./user.controller";
 import { User } from "./user.entity";
 import { UserRepository } from "./user.repository";
-import { AuthService } from "auth/auth.service";
+import { AuthService } from "../auth/auth.service";
 import { HttpModule } from "@nestjs/axios";
 
 @Module({
