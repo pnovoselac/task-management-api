@@ -34,13 +34,13 @@ export class ProjectController {
   async addMembersToProject(
     @Param("id") projectId: number,
     @Body("memberIds") memberIds: string[]
-  ) {
+  ): Promise<Project> {
     return this.projectService.addMembersToProject(projectId, memberIds);
   }
 
   @Get()
   @UseGuards(AuthGuard)
-  async findAllProjects(@Request() req) {
+  async findAllProjects(@Request() req): Promise<Project[]> {
     const user = req.user;
     return await this.projectService.findAllProjects(user?.uid);
   }
