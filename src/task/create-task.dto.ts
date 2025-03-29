@@ -13,6 +13,7 @@ export class CreateTaskDto {
   title!: string;
 
   @IsString()
+  @IsNotEmpty()
   description!: string;
 
   @IsEnum(Status)

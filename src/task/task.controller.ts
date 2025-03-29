@@ -28,7 +28,7 @@ export class TaskController {
   }
 
   @Get()
-  async findAllTasks(@Query() filters: ITaskFilters) {
+  async findAllTasks(@Query() filters: ITaskFilters): Promise<Task[]> {
     if (Object.keys(filters).length > 0) {
       return await this.taskService.filterTasksBy(filters);
     }
@@ -40,15 +40,12 @@ export class TaskController {
   async attachFileToTask(
     @Param("id") id: number,
     @UploadedFile() file: Express.Multer.File
-  ): Promise<any> {
+  ): Promise<Task> {
     if (!file) {
       throw new NotFoundException("No file provided");
     }
-
     const task = await this.taskService.attachFile(id, file);
-    return {
-      task,
-    };
+    return task;
   }
 
   @Patch(":id")
@@ -57,7 +54,7 @@ export class TaskController {
   }
 
   @Delete(":id")
-  async deleteTask(@Param("id") id: number) {
+  async deleteTask(@Param("id") id: number): Promise<void> {
     return this.taskService.deleteTask(id);
   }
 }
