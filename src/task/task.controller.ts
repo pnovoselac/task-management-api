@@ -18,7 +18,6 @@ import { Task } from "./task.entity.js";
 import { CreateTaskDto } from "./create-task.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ITaskFilters } from "./taskfilters";
-import { UpdateTaskDto } from "./update-task.dto";
 
 @Controller("tasks")
 export class TaskController {
@@ -53,11 +52,8 @@ export class TaskController {
   }
 
   @Patch(":id")
-  async updateTask(
-    @Param("id") id: number,
-    @Body() updateTaskDto: UpdateTaskDto
-  ) {
-    return this.taskService.updateTask(id, updateTaskDto);
+  async updateTask(@Param("id") id: number, @Body() updates: Partial<Task>) {
+    return this.taskService.updateTask(id, updates);
   }
 
   @Delete(":id")

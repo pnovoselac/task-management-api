@@ -4,9 +4,8 @@ import { InjectRepository } from "@mikro-orm/nestjs";
 import { Task } from "./task.entity";
 import { CreateTaskDto } from "./create-task.dto";
 import { FirebaseStorageService } from "../firebase/firebase.storage.service";
-import { FilterQuery } from "@mikro-orm/core";
+import { FilterQuery, wrap } from "@mikro-orm/core";
 import { ITaskFilters } from "./taskfilters";
-import { UpdateTaskDto } from "./update-task.dto";
 
 @Injectable()
 export class TaskService {
@@ -73,11 +72,11 @@ export class TaskService {
     return await this.taskRepository.getFilesForTask(taskId);
   }
 
-  async updateTask(id: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
+  async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
     const task = await this.taskRepository.findOne(id);
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
 
-    Object.assign(task, updateTaskDto);
+    wrap(task).assign(updates);
     await this.taskRepository.persistAndFlush(task);
     return task;
   }
