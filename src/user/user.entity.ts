@@ -4,6 +4,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OptionalProps,
   PrimaryKey,
   Property,
 } from "@mikro-orm/core";
@@ -14,6 +15,7 @@ import { Project } from "../project/project.entity";
 
 @Entity({ repository: () => UserRepository })
 export class User {
+  [OptionalProps]?: "createdAt" | "updatedAt" | "deletedAt";
   @PrimaryKey()
   id!: string;
 
@@ -28,4 +30,13 @@ export class User {
 
   @ManyToMany(() => Project, (project) => project.members)
   memberProjects = new Collection<Project>(this);
+
+  @Property({ onCreate: () => new Date() })
+  createdAt: Date = new Date();
+
+  @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
+
+  @Property({ nullable: true })
+  deletedAt: Date = new Date();
 }
