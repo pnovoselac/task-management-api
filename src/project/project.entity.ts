@@ -20,7 +20,7 @@ export enum Visibility {
 
 @Entity({ repository: () => ProjectRepository })
 export class Project {
-  [OptionalProps]?: "createdAt" | "updatedAt";
+  [OptionalProps]?: "createdAt" | "updatedAt" | "deletedAt";
   @PrimaryKey()
   id!: number;
 
@@ -35,6 +35,9 @@ export class Project {
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
   updatedAt: Date = new Date();
+
+  @Property({ nullable: true })
+  deletedAt: Date = new Date();
 
   @OneToMany(() => Task, (task) => task.project)
   tasks = new Collection<Task>(this);

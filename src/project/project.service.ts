@@ -39,18 +39,21 @@ export class ProjectService {
     if (userId) {
       return await this.projectRepository.find({
         $or: [
-          { visibility: Visibility.PUBLIC },
-          { owner: userId },
-          { members: { $in: [userId] } },
+          { visibility: Visibility.PUBLIC, deletedAt: null },
+          { owner: userId, deletedAt: null },
+          { members: { $in: [userId] }, deletedAt: null },
         ],
       });
     }
-    return await this.projectRepository.find({ visibility: Visibility.PUBLIC });
+    return await this.projectRepository.find({
+      visibility: Visibility.PUBLIC,
+      deletedAt: null,
+    });
   }
 
   async findProjectById(id: number): Promise<Project | null> {
     const project = await this.projectRepository.findOne(
-      { id },
+      { id, deletedAt: null },
       { populate: ["tasks"] }
     );
     if (!project) {
@@ -87,9 +90,9 @@ export class ProjectService {
     }
     return this.projectRepository.addMembersToProject(projectId, members);
   }
-  async deleteProject(id: number, userId: string): Promise<void> {
-    const project = await this.projectRepository.findOne({ id });
 
+  async softDeleteProject(id: number, userId: string): Promise<void> {
+    const project = await this.projectRepository.findOne({ id });
     if (!project) {
       throw new NotFoundException(
         `Project with ID ${id} not found, cant delete nonexisted project`
@@ -98,7 +101,7 @@ export class ProjectService {
     if (project.owner.id !== userId) {
       throw new ForbiddenException("You are not the owner of this project");
     }
-
-    await this.projectRepository.removeAndFlush(project);
+    project.deletedAt = new Date();
+    await this.projectRepository.persistAndFlush(project);
   }
 }

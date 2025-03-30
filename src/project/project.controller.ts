@@ -64,8 +64,11 @@ export class ProjectController {
 
   @Delete(":id")
   @UseGuards(AuthGuard)
-  async deleteProject(@Param("id") id: number, @Request() req): Promise<void> {
+  async softDeleteProject(
+    @Param("id") id: number,
+    @Request() req
+  ): Promise<void> {
     const user = req.user;
-    await this.projectService.deleteProject(id, user.uid);
+    await this.projectService.softDeleteProject(id, user.uid);
   }
 }
