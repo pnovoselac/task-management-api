@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { FileRepository } from "./file.repository";
 import { Task } from "../task/task.entity";
 import { File } from "./file.entity";
@@ -9,17 +14,11 @@ export class FileService {
 
   async createFile(task: Task, fileUrl: string): Promise<File> {
     try {
-      console.log("Creating file entity...");
       const file = this.fileRepository.create({ task, url: fileUrl });
-      console.log("File entity created:", file);
-
       await this.fileRepository.persistAndFlush(file);
-      console.log("File entity persisted successfully:", file);
-
       return file;
     } catch (error) {
-      console.error("Error creating file record:", error);
-      throw new Error(`Error creating file:}`);
+      throw new HttpException("Error creating file", HttpStatus.BAD_REQUEST);
     }
   }
 
