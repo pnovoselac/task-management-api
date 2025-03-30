@@ -1,7 +1,9 @@
+import { Priority, Status } from "./task.entity";
+
 export interface ITaskFilters {
   owner?: string;
   project?: number;
-  priority?: string;
-  status?: string;
+  priority?: Priority;
+  status?: Status;
   dueDate?: Date;
 }

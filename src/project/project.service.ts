@@ -8,6 +8,7 @@ import { Project, Visibility } from "./project.entity";
 import { ProjectRepository } from "./project.repository";
 import { CreateProjectDto } from "./project.dto";
 import { wrap } from "@mikro-orm/core";
+import { User } from "../user/user.entity";
 
 @Injectable()
 export class ProjectService {
@@ -75,15 +76,16 @@ export class ProjectService {
     await this.projectRepository.flush();
     return project;
   }
-
   async addMembersToProject(
     projectId: number,
     memberIds: string[]
   ): Promise<Project> {
-    return await this.projectRepository.addMembersToProject(
-      projectId,
-      memberIds
-    );
+    const members = await this.projectRepository.findMembersById(memberIds);
+
+    if (members.length !== memberIds.length) {
+      throw new NotFoundException("One or more users not found");
+    }
+    return this.projectRepository.addMembersToProject(projectId, members);
   }
   async deleteProject(id: number, userId: string): Promise<void> {
     const project = await this.projectRepository.findOne({ id });

@@ -6,7 +6,9 @@ export class Migration20250316192024 extends Migration {
       `alter table "project" drop constraint "project_member_id_foreign";`
     );
 
-    this.addSql(`alter table "user" add column "member_projects_id" int;`);
+    this.addSql(
+      `alter table "user" add column "member_projects_id" int not null;`
+    );
     this.addSql(
       `alter table "user" add constraint "user_member_projects_id_foreign" foreign key ("member_projects_id") references "project" ("id") on update cascade;`
     );

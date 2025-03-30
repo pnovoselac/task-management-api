@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateUserDto } from "./create-user.dto";
 import { User } from "./user.entity";
 import { UserRepository } from "./user.repository";
@@ -6,7 +12,7 @@ import { InjectRepository } from "@mikro-orm/nestjs";
 import { RegisterUserDto } from "./register-user.dto";
 import * as admin from "firebase-admin";
 import { LoginUserDto } from "./login-user.dto";
-import { AuthService } from "auth/auth.service";
+import { AuthService } from "../auth/auth.service";
 
 @Injectable()
 export class UserService {
@@ -16,25 +22,26 @@ export class UserService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create({ ...createUserDto });
+    const user = this.userRepository.create({
+      ...createUserDto,
+    });
     await this.userRepository.persistAndFlush(user);
     return user;
   }
 
-  findAll() {
-    return this.userRepository.findAll();
+  async findAllUsers(): Promise<User[]> {
+    return await this.userRepository.findAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async findUserById(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ id });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 
   async registerUser(registerUserDto: RegisterUserDto): Promise<User> {
-    console.log("Register DTO:", registerUserDto);
     const firebaseUser = await this.firebaseAuthService.registerUser(
       registerUserDto.email,
       registerUserDto.password

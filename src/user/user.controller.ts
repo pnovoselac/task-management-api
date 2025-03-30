@@ -29,16 +29,11 @@ export class UserController {
 
   @Get()
   findAll() {
-    return this.userService.findAll();
+    return this.userService.findAllUsers();
   }
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    return this.userService.findOne(+id);
-  }
-
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.userService.remove(+id);
+    return this.userService.findUserById(id);
   }
 }
