@@ -36,4 +36,9 @@ export class UserController {
   findOne(@Param("id") id: string) {
     return this.userService.findUserById(id);
   }
+
+  @Delete(":id")
+  softDelete(@Param("id") id: string) {
+    return this.userService.softDeleteUser(id);
+  }
 }
