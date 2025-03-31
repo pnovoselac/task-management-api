@@ -54,7 +54,7 @@ export class TaskController {
   }
 
   @Delete(":id")
-  async deleteTask(@Param("id") id: number): Promise<void> {
-    return this.taskService.deleteTask(id);
+  async softDeleteTask(@Param("id") id: number): Promise<void> {
+    await this.taskService.softDeleteTask(id);
   }
 }
