@@ -6,6 +6,7 @@ import { CreateTaskDto } from "./create-task.dto";
 import { FirebaseStorageService } from "../firebase/firebase.storage.service";
 import { FilterQuery, wrap } from "@mikro-orm/core";
 import { ITaskFilters } from "./taskfilters";
+import { populate } from "dotenv";
 
 @Injectable()
 export class TaskService {
@@ -34,13 +35,14 @@ export class TaskService {
   }
 
   async findAllTasks(): Promise<Task[]> {
-    return await this.taskRepository.findAll({
-      populate: ["files"],
-    });
+    return await this.taskRepository.find(
+      { deletedAt: null },
+      { populate: ["files"] }
+    );
   }
 
   async filterTasksBy(filters: ITaskFilters): Promise<Task[]> {
-    const query: FilterQuery<Task> = {};
+    const query: FilterQuery<Task> = { deletedAt: null };
 
     if (filters.owner) query.owner = filters.owner;
     if (filters.project) query.project = filters.project;
@@ -51,15 +53,16 @@ export class TaskService {
     return await this.taskRepository.find(query);
   }
   async attachFile(taskId: number, file: Express.Multer.File): Promise<Task> {
-    const task = await this.taskRepository.findOne(taskId, {
-      populate: ["files"],
-    });
+    const task = await this.taskRepository.find(
+      { $and: [{ id: taskId }, { deletedAt: null }] },
+      { populate: ["files"] }
+    );
 
     if (!task) {
       throw new NotFoundException(`Task with ID ${taskId} not found`);
     }
 
-    const destination = `tasks/${task.id}/${Date.now()}-${file.originalname}`;
+    const destination = `tasks/${taskId}/${Date.now()}-${file.originalname}`;
     const fileUrl = await this.firebaseStorageService.uploadFile(
       file,
       destination
@@ -67,13 +70,8 @@ export class TaskService {
     return await this.taskRepository.attachFile(taskId, fileUrl);
   }
 
-  async getFilesForTask(taskId: number): Promise<string[]> {
-    if (!taskId) throw new NotFoundException(`Cannot get files for ${taskId}`);
-    return await this.taskRepository.getFilesForTask(taskId);
-  }
-
   async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
-    const task = await this.taskRepository.findOne(id);
+    const task = await this.taskRepository.findOne({ id, deletedAt: null });
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
 
     wrap(task).assign(updates);
@@ -81,10 +79,12 @@ export class TaskService {
     return task;
   }
 
-  async deleteTask(id: number): Promise<void> {
-    const task = await this.taskRepository.findOne(id);
-    if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
-
-    await this.taskRepository.removeAndFlush(task);
+  async softDeleteTask(id: number): Promise<void> {
+    const task = await this.taskRepository.findOne({ id, deletedAt: null });
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+    task.deletedAt = new Date();
+    await this.taskRepository.persistAndFlush(task);
   }
 }

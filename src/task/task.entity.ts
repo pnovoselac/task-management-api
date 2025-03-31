@@ -27,7 +27,7 @@ export enum Status {
 
 @Entity({ repository: () => TaskRepository })
 export class Task {
-  [OptionalProps]?: "createdAt" | "updatedAt";
+  [OptionalProps]?: "createdAt" | "updatedAt" | "deletedAt";
 
   @PrimaryKey()
   id!: number;
@@ -52,6 +52,9 @@ export class Task {
 
   @Property({ onCreate: () => new Date(), onUpdate: () => new Date() })
   updatedAt: Date = new Date();
+
+  @Property({ nullable: true })
+  deletedAt: Date = new Date();
 
   @ManyToOne(() => Project)
   project!: Project;
