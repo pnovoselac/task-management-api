@@ -30,14 +30,21 @@ export class UserService {
   }
 
   async findAllUsers(): Promise<User[]> {
-    return await this.userRepository.findAll();
+    return await this.userRepository.find({ deletedAt: null });
   }
 
   async findUserById(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ id });
+    const user = await this.userRepository.findOne({ id, deletedAt: null });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+    return user;
+  }
+
+  async softDeleteUser(id: string): Promise<User> {
+    const user = await this.findUserById(id);
+    user.deletedAt = new Date();
+    await this.userRepository.persistAndFlush(user);
     return user;
   }
 
@@ -49,6 +56,7 @@ export class UserService {
     const user = this.createUser({
       id: firebaseUser.uid,
       email: firebaseUser.email,
+      deletedAt: null,
     });
     return user;
   }
