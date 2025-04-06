@@ -9,6 +9,7 @@ import { AuthModule } from "./auth/auth.module";
 import { FirebaseAdminModule } from "./firebase/firebase.admin.module";
 import { FileModule } from "./file/file.module";
 import { MikroOrmMiddleware } from "@mikro-orm/nestjs";
+import { SwaggerConfigModule } from "./swagger/swagger.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MikroOrmMiddleware } from "@mikro-orm/nestjs";
     AuthModule,
     FirebaseAdminModule,
     FileModule,
+    SwaggerConfigModule,
   ],
   controllers: [],
   providers: [],
