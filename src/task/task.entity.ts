@@ -12,6 +12,7 @@ import { TaskRepository } from "./task.repository";
 import { Project } from "../project/project.entity";
 import { User } from "../user/user.entity";
 import { File } from "../file/file.entity";
+import { ApiProperty } from "@nestjs/swagger";
 
 export enum Priority {
   LOW = "Low",
@@ -54,7 +55,7 @@ export class Task {
   updatedAt: Date = new Date();
 
   @Property({ nullable: true })
-  deletedAt: Date = new Date();
+  deletedAt?: Date | null;
 
   @ManyToOne(() => Project)
   project!: Project;
