@@ -7,6 +7,7 @@ import {
 } from "@mikro-orm/core";
 import { FileRepository } from "./file.repository";
 import { Task } from "../task/task.entity";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity({ repository: () => FileRepository })
 export class File {
