@@ -51,7 +51,6 @@ export class TaskController {
   }
 
   @Get()
-  @ApiOperation({ summary: "Retrieve all tasks or filter tasks" })
   @ApiTaskQueries()
   @ApiResponse({
     status: 200,
