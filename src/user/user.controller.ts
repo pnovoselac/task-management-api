@@ -70,7 +70,7 @@ export class UserController {
   @ApiBearerAuth("access-token")
   @ApiParam({
     name: "id",
-    description: "Unique identifier for the user (Firebase UID)",
+    description: "Unique identifier for the user (UID)",
   })
   @ApiResponse({
     status: 200,
@@ -89,7 +89,7 @@ export class UserController {
   @ApiBearerAuth("access-token")
   @ApiParam({
     name: "id",
-    description: "Unique identifier for the user (Firebase UID)",
+    description: "Unique identifier for the user (UID)",
   })
   @ApiResponse({
     status: 200,

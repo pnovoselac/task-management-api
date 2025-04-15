@@ -53,11 +53,12 @@ export class UserService {
       registerUserDto.email,
       registerUserDto.password
     );
-    const user = this.createUser({
-      id: firebaseUser.uid,
+    const user = await this.createUser({
+      firebaseId: firebaseUser.uid,
       email: firebaseUser.email,
       deletedAt: null,
     });
+    this.userRepository.persistAndFlush(user);
     return user;
   }
 

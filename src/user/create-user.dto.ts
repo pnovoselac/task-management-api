@@ -8,8 +8,7 @@ export class CreateUserDto {
     required: true,
   })
   @IsString()
-  @IsNotEmpty()
-  id!: string;
+  firebaseId?: string;
 
   @ApiProperty({
     description: "User email address",

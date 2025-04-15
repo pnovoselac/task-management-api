@@ -8,6 +8,15 @@
       "columns": {
         "id": {
           "name": "id",
+          "type": "uuid",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "uuid"
+        },
+        "firebase_id": {
+          "name": "firebase_id",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
@@ -138,13 +147,12 @@
         },
         "owner_id": {
           "name": "owner_id",
-          "type": "varchar(255)",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
-          "mappedType": "string"
+          "mappedType": "uuid"
         },
         "visibility": {
           "name": "visibility",
@@ -304,13 +312,12 @@
         },
         "owner_id": {
           "name": "owner_id",
-          "type": "varchar(255)",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
-          "mappedType": "string"
+          "mappedType": "uuid"
         }
       },
       "name": "task",
@@ -441,13 +448,12 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "varchar(255)",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "length": 255,
-          "mappedType": "string"
+          "mappedType": "uuid"
         }
       },
       "name": "project_members",
