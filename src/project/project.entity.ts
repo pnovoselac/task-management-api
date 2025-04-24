@@ -37,7 +37,7 @@ export class Project {
   updatedAt: Date = new Date();
 
   @Property({ nullable: true })
-  deletedAt: Date = new Date();
+  deletedAt!: Date | null;
 
   @OneToMany(() => Task, (task) => task.project)
   tasks = new Collection<Task>(this);
