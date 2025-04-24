@@ -17,7 +17,7 @@ export class SwaggerConfigModule {
           scheme: "bearer",
           bearerFormat: "JWT",
           name: "Authorization",
-          description: 'Type in JWT token with "Bearer " prefix',
+          description: 'Type in JWT token without "Bearer " prefix',
           in: "header",
         },
         "access-token"
