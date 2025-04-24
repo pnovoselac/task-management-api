@@ -9,15 +9,21 @@ import {
   Property,
 } from "@mikro-orm/core";
 import { UserRepository } from "./user.repository";
+import { v4 } from "uuid";
 import { IsEmail, IsNotEmpty, Length } from "class-validator";
 import { Task } from "../task/task.entity";
 import { Project } from "../project/project.entity";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity({ repository: () => UserRepository })
 export class User {
   [OptionalProps]?: "createdAt" | "updatedAt" | "deletedAt";
-  @PrimaryKey()
-  id!: string;
+
+  @PrimaryKey({ type: "uuid" })
+  id: string = v4();
+
+  @Property()
+  firebaseId?: string;
 
   @Property()
   email!: string;
