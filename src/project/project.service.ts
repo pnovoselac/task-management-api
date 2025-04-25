@@ -9,6 +9,7 @@ import { ProjectRepository } from "./project.repository";
 import { CreateProjectDto } from "./project.dto";
 import { wrap } from "@mikro-orm/core";
 import { User } from "../user/user.entity";
+import { UpdateProjectDto } from "./update-project.dto";
 
 @Injectable()
 export class ProjectService {
@@ -21,7 +22,7 @@ export class ProjectService {
     createProjectDto: CreateProjectDto,
     ownerId: string
   ): Promise<Project> {
-    const owner = await this.projectRepository.findOwnerById(ownerId);
+    const owner = await this.projectRepository.findOwnerByFirebaseId(ownerId);
     if (!owner) {
       throw new NotFoundException(`User with ID ${ownerId} not found`);
     }
@@ -37,24 +38,34 @@ export class ProjectService {
 
   async findAllProjects(userId?: string): Promise<Project[]> {
     if (userId) {
-      return await this.projectRepository.find({
-        $or: [
-          { visibility: Visibility.PUBLIC, deletedAt: null },
-          { owner: userId, deletedAt: null },
-          { members: { $in: [userId] }, deletedAt: null },
-        ],
-      });
+      const owner = await this.projectRepository.findOwnerByFirebaseId(userId);
+      if (!owner) {
+        throw new NotFoundException(`User ${owner} not found`);
+      }
+      return await this.projectRepository.find(
+        {
+          $or: [
+            { visibility: Visibility.PUBLIC, deletedAt: null },
+            { owner, deletedAt: null },
+            { members: { $in: [owner] }, deletedAt: null },
+          ],
+        },
+        { populate: ["members", "tasks"] }
+      );
     }
-    return await this.projectRepository.find({
-      visibility: Visibility.PUBLIC,
-      deletedAt: null,
-    });
+    return await this.projectRepository.find(
+      {
+        visibility: Visibility.PUBLIC,
+        deletedAt: null,
+      },
+      { populate: ["members", "tasks"] }
+    );
   }
 
   async findProjectById(id: number): Promise<Project | null> {
     const project = await this.projectRepository.findOne(
       { id, deletedAt: null },
-      { populate: ["tasks"] }
+      { populate: ["members", "tasks"] }
     );
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -64,42 +75,55 @@ export class ProjectService {
 
   async updateProject(
     id: number,
-    updates: Partial<Project>,
-    userId: string
+    updateProjectDto: UpdateProjectDto,
+    ownerId: string
   ): Promise<Project> {
     const project = await this.projectRepository.findOne({ id });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
-    if (project.owner.id !== userId) {
-      throw new ForbiddenException("You are not the owner of this project");
+    const owner = await this.projectRepository.findOwnerByFirebaseId(ownerId);
+    if (!owner) {
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
+    }
+    if (project.owner !== owner) {
+      throw new ForbiddenException("You are not owner of this project");
     }
 
-    wrap(project).assign(updates);
+    wrap(project).assign(updateProjectDto);
     await this.projectRepository.flush();
     return project;
   }
   async addMembersToProject(
     projectId: number,
     memberIds: string[]
-  ): Promise<Project> {
-    const members = await this.projectRepository.findMembersById(memberIds);
+  ): Promise<Project | undefined> {
+    if (await this.findProjectById(projectId)) {
+      const members = await this.projectRepository.findMembersById(memberIds);
 
-    if (members.length !== memberIds.length) {
-      throw new NotFoundException("One or more users not found");
+      if (members.length !== memberIds.length) {
+        throw new NotFoundException("One or more users not found");
+      }
+      return await this.projectRepository.addMembersToProject(
+        projectId,
+        members
+      );
     }
-    return this.projectRepository.addMembersToProject(projectId, members);
   }
 
-  async softDeleteProject(id: number, userId: string): Promise<void> {
+  async softDeleteProject(id: number, ownerId: string): Promise<void> {
     const project = await this.projectRepository.findOne({ id });
     if (!project) {
       throw new NotFoundException(
         `Project with ID ${id} not found, cant delete nonexisted project`
       );
     }
-    if (project.owner.id !== userId) {
-      throw new ForbiddenException("You are not the owner of this project");
+    const owner = await this.projectRepository.findOwnerByFirebaseId(ownerId);
+    if (!owner) {
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
+    }
+    if (project.owner !== owner) {
+      throw new ForbiddenException("You are not owner of this project");
     }
     project.deletedAt = new Date();
     await this.projectRepository.persistAndFlush(project);

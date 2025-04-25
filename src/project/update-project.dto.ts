@@ -3,7 +3,7 @@ import { Visibility } from "./project.entity";
 import { IsDate, IsEnum, IsNotEmpty } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
-export class CreateProjectDto {
+export class UpdateProjectDto {
   @ApiProperty({
     description: "Project name",
     example: "Task Management API",
@@ -19,9 +19,6 @@ export class CreateProjectDto {
   })
   @IsNotEmpty()
   description!: string;
-
-  @IsNotEmpty()
-  owner!: User;
 
   @ApiProperty({
     description: "Project visibility",

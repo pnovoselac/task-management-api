@@ -14,6 +14,7 @@ import {
 import { ProjectService } from "./project.service";
 import { CreateProjectDto } from "./project.dto";
 import { Project } from "./project.entity";
+import { UpdateProjectDto } from "./update-project.dto";
 import { AuthGuard } from "../auth/auth.guard";
 import {
   ApiBearerAuth,
@@ -34,7 +35,6 @@ export class ProjectController {
   @ApiResponse({
     status: 201,
     description: "Project created successfuly",
-    type: Project,
   })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   async createProject(
@@ -62,17 +62,16 @@ export class ProjectController {
           type: "array",
           items: { type: "string" },
           example: [
-            "RunhBen7nzQ2GxPYifsOYWcOTRI2",
-            "oba0A4qc12bNwtTix0118fmYNhD3",
+            "9709bc14-8b62-4771-a8e1-9548289371af",
+            "c54d0bf8-d32c-44ef-bb08-bef741589629",
           ],
         },
       },
     },
   })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: "Succesfully added members",
-    type: Project,
   })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({
@@ -82,8 +81,8 @@ export class ProjectController {
   async addMembersToProject(
     @Param("id") projectId: number,
     @Body("memberIds") memberIds: string[]
-  ): Promise<Project> {
-    return this.projectService.addMembersToProject(projectId, memberIds);
+  ): Promise<Project | undefined> {
+    return await this.projectService.addMembersToProject(projectId, memberIds);
   }
 
   @Get()
@@ -91,7 +90,7 @@ export class ProjectController {
   @ApiOperation({ summary: "Get all projects" })
   @ApiResponse({
     status: 200,
-    type: [Project],
+    description: "Projects found",
   })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   async findAllProjects(@Request() req): Promise<Project[]> {
@@ -103,7 +102,7 @@ export class ProjectController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: "Get project by ID" })
   @ApiParam({ name: "id", description: "Project ID", type: Number })
-  @ApiResponse({ status: 200, description: "Project found", type: Project })
+  @ApiResponse({ status: 200, description: "Project found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Project can not be found" })
   async findProjectById(@Param("id") id: number): Promise<Project | null> {
@@ -117,7 +116,6 @@ export class ProjectController {
   @ApiResponse({
     status: 200,
     description: "Project updated successfully",
-    type: Project,
   })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({
@@ -126,7 +124,7 @@ export class ProjectController {
   })
   async updateProject(
     @Param("id") id: number,
-    @Body() updates: Partial<Project>,
+    @Body() updates: UpdateProjectDto,
     @Request() req
   ): Promise<Project | null> {
     const user = req.user;
