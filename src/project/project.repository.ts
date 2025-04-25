@@ -28,8 +28,8 @@ export class ProjectRepository extends EntityRepository<Project> {
   async flush(): Promise<void> {
     return this.em.flush();
   }
-  async findOwnerById(ownerId: string): Promise<User> {
-    return await this.em.findOneOrFail(User, { id: ownerId });
+  async findOwnerByFirebaseId(ownerId: string): Promise<User> {
+    return await this.em.findOneOrFail(User, { firebaseId: ownerId });
   }
 
   async findMembersById(memberIds: string[]): Promise<User[]> {
