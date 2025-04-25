@@ -40,7 +40,6 @@ export function ApiTaskQueries() {
     ApiResponse({
       status: 200,
       description: "List of tasks matching the criteria",
-      type: [Task],
     })
   );
 }

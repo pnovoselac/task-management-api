@@ -34,30 +34,17 @@ export class TaskRepository extends EntityRepository<Task> {
   async findProjectById(projectId: number): Promise<Project> {
     return await this.em.findOneOrFail(Project, { id: projectId });
   }
-
-  async findOwnerById(ownerId: string): Promise<User> {
-    if (!ownerId) {
-      throw new NotFoundException("Owner ID is missing");
-    }
-
-    const owner = await this.em.findOne(User, { id: ownerId });
-    if (!owner) {
-      throw new NotFoundException(`User not found with ID ${ownerId}`);
-    }
-
-    return owner;
+  async findOwnerByFirebaseId(ownerId: string): Promise<User> {
+    return await this.em.findOneOrFail(User, { firebaseId: ownerId });
   }
 
   async attachFile(taskId: number, fileUrl: string): Promise<Task> {
     const task = await this.findOne(taskId, { populate: ["files"] });
-
     if (!task) {
       throw new NotFoundException(`Task with ID ${taskId} not found`);
     }
-
     const file = this.em.create(File, { url: fileUrl, task });
     await this.em.persistAndFlush(file);
-
     task.files.add(file);
     await this.flush();
 
@@ -66,11 +53,9 @@ export class TaskRepository extends EntityRepository<Task> {
 
   async getFilesForTask(taskId: number): Promise<string[]> {
     const task = await this.findOne(taskId, { populate: ["files"] });
-
     if (!task) {
       throw new NotFoundException(`Task with ID ${taskId} not found`);
     }
-
     return task.files.getItems().map((file) => file.url);
   }
 }

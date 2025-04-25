@@ -7,6 +7,7 @@ import {
 } from "class-validator";
 import { Priority, Status } from "./task.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { User } from "user/user.entity";
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -55,10 +56,6 @@ export class CreateTaskDto {
   @IsNumber()
   projectId!: number;
 
-  @ApiProperty({
-    description: "ID of the owner assigned to this task",
-    example: "MBYGntGr9yVowQxSTAGIH79yDnT2",
-  })
-  @IsString()
-  ownerId!: string;
+  @IsNotEmpty()
+  owner!: User;
 }

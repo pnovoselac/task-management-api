@@ -15,14 +15,17 @@ export class TaskService {
     private readonly firebaseStorageService: FirebaseStorageService
   ) {}
 
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(
+    createTaskDto: CreateTaskDto,
+    ownerId: string
+  ): Promise<Task> {
+    const owner = await this.taskRepository.findOwnerByFirebaseId(ownerId);
+    if (!owner) {
+      throw new NotFoundException(`User with ID ${ownerId} not found`);
+    }
     const project = await this.taskRepository.findProjectById(
       createTaskDto.projectId
     );
-    const owner = await this.taskRepository.findOwnerById(
-      createTaskDto.ownerId
-    );
-    console.log(owner);
 
     const task = this.taskRepository.create({
       ...createTaskDto,
