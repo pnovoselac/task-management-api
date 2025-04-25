@@ -12,6 +12,8 @@ import {
   HttpStatus,
   Patch,
   NotFoundException,
+  Request,
+  UseGuards,
 } from "@nestjs/common";
 import { TaskService } from "./task.service";
 import { Task } from "./task.entity.js";
@@ -19,6 +21,7 @@ import { CreateTaskDto } from "./create-task.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ITaskFilters } from "./taskfilters";
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
@@ -26,12 +29,15 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { ApiTaskQueries } from "../swagger/api.task.queries";
+import { AuthGuard } from "../auth/auth.guard";
 
 @Controller("tasks")
+@ApiBearerAuth("access-token")
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: "Create a new task" })
   @ApiBody({
     type: CreateTaskDto,
@@ -40,14 +46,17 @@ export class TaskController {
   @ApiResponse({
     status: 201,
     description: "The task has been successfully created",
-    type: Task,
   })
   @ApiResponse({
     status: 400,
     description: "Invalid input data",
   })
-  async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.taskService.createTask(createTaskDto);
+  async createTask(
+    @Body() createTaskDto: CreateTaskDto,
+    @Request() req
+  ): Promise<Task> {
+    const user = req.user;
+    return await this.taskService.createTask(createTaskDto, user.uid);
   }
 
   @Get()
@@ -55,7 +64,6 @@ export class TaskController {
   @ApiResponse({
     status: 200,
     description: "List of tasks matching the filters",
-    type: [Task],
   })
   async findAllTasks(@Query() filters: ITaskFilters): Promise<Task[]> {
     if (Object.keys(filters).length > 0) {
@@ -82,7 +90,8 @@ export class TaskController {
       properties: {
         file: {
           type: "string",
-          description: "The file to attach",
+          format: "binary",
+          description: "The file to attach (PDF or image)",
         },
       },
     },
@@ -90,21 +99,6 @@ export class TaskController {
   @ApiResponse({
     status: 201,
     description: "File successfully attached to the task",
-    example: {
-      id: 18,
-      title: "Little task",
-      description: null,
-      status: "In Progress",
-      priority: "Medium",
-      ownerId: "P0ig64TxsnbeOC5UB8L7Yx6Duw1",
-      files: [
-        {
-          id: 1,
-          url: "https://storage.googleapis.com/task-management-api/tasks/18/file.pdf",
-          createdAt: "2025-04-06T22:57:32.370Z",
-        },
-      ],
-    },
   })
   @ApiResponse({
     status: 404,
