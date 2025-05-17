@@ -38,6 +38,10 @@ export class TaskRepository extends EntityRepository<Task> {
     return await this.em.findOneOrFail(User, { firebaseId: ownerId });
   }
 
+  async findOwnerById(ownerId: string): Promise<User> {
+    return await this.em.findOneOrFail(User, { id: ownerId });
+  }
+
   async attachFile(taskId: number, fileUrl: string): Promise<Task> {
     const task = await this.findOne(taskId, { populate: ["files"] });
     if (!task) {
