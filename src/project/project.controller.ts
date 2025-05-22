@@ -10,6 +10,7 @@ import {
   Query,
   UseGuards,
   Request,
+  ValidationPipe,
 } from "@nestjs/common";
 import { ProjectService } from "./project.service";
 import { CreateProjectDto } from "./project.dto";
@@ -21,8 +22,11 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
 } from "@nestjs/swagger";
+import { PaginatedProjectsDto } from "./paginated-project.dto";
+import { PaginationQueryDto } from "./pagination-project-query.dto";
 
 @Controller("projects")
 @ApiBearerAuth("access-token")
@@ -88,14 +92,31 @@ export class ProjectController {
   @Get()
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: "Get all projects" })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "Set wanted page number",
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "Set number of projects to be shown",
+  })
   @ApiResponse({
     status: 200,
     description: "Projects found",
+    type: PaginatedProjectsDto,
   })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async findAllProjects(@Request() req): Promise<Project[]> {
+  async findAllProjects(
+    @Request() req,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: PaginationQueryDto
+  ): Promise<PaginatedProjectsDto> {
     const user = req.user;
-    return await this.projectService.findAllProjects(user?.uid);
+    return await this.projectService.findAllProjects(user?.uid, query);
   }
 
   @Get(":id")
