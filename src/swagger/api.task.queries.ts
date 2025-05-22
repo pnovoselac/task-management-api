@@ -33,13 +33,21 @@ export function ApiTaskQueries() {
     ApiQuery({
       name: "dueDate",
       required: false,
-      type: String,
+      type: Date,
       format: "date-time",
       description: "Filter tasks by due date",
     }),
-    ApiResponse({
-      status: 200,
-      description: "List of tasks matching the criteria",
+    ApiQuery({
+      name: "page",
+      required: false,
+      type: Number,
+      description: "Set wanted page number",
+    }),
+    ApiQuery({
+      name: "limit",
+      required: false,
+      type: Number,
+      description: "Set number of tasks to be shown",
     })
   );
 }
