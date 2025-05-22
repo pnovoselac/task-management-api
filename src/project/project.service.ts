@@ -7,9 +7,11 @@ import { InjectRepository } from "@mikro-orm/nestjs";
 import { Project, Visibility } from "./project.entity";
 import { ProjectRepository } from "./project.repository";
 import { CreateProjectDto } from "./project.dto";
-import { wrap } from "@mikro-orm/core";
+import { FilterQuery, wrap } from "@mikro-orm/core";
 import { User } from "../user/user.entity";
 import { UpdateProjectDto } from "./update-project.dto";
+import { PaginatedProjectsDto } from "./paginated-project.dto";
+import { PaginationQueryDto } from "./pagination-project-query.dto";
 
 @Injectable()
 export class ProjectService {
@@ -36,30 +38,41 @@ export class ProjectService {
     return project;
   }
 
-  async findAllProjects(userId?: string): Promise<Project[]> {
+  async findAllProjects(
+    userId?: string,
+    pagination?: PaginationQueryDto
+  ): Promise<PaginatedProjectsDto> {
+    const page = pagination?.page ?? 1;
+    const limit = pagination?.limit ?? 20;
+    const offset = (page - 1) * limit;
+    let query: FilterQuery<Project> = { deletedAt: null };
+
     if (userId) {
       const owner = await this.projectRepository.findOwnerByFirebaseId(userId);
       if (!owner) {
         throw new NotFoundException(`User ${owner} not found`);
       }
-      return await this.projectRepository.find(
-        {
-          $or: [
-            { visibility: Visibility.PUBLIC, deletedAt: null },
-            { owner, deletedAt: null },
-            { members: { $in: [owner] }, deletedAt: null },
-          ],
-        },
-        { populate: ["members", "tasks"] }
-      );
+      query = {
+        $or: [
+          { visibility: Visibility.PUBLIC, deletedAt: null },
+          { owner, deletedAt: null },
+          { members: { $in: [owner] }, deletedAt: null },
+        ],
+      };
+    } else {
+      query = { visibility: Visibility.PUBLIC, deletedAt: null };
     }
-    return await this.projectRepository.find(
-      {
-        visibility: Visibility.PUBLIC,
-        deletedAt: null,
-      },
-      { populate: ["members", "tasks"] }
-    );
+    const [projects, total] = await this.projectRepository.findAndCount(query, {
+      limit,
+      offset,
+      populate: ["members", "tasks"],
+    });
+
+    return {
+      data: projects,
+      page,
+      total,
+    };
   }
 
   async findProjectById(id: number): Promise<Project | null> {
