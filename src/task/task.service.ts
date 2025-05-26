@@ -46,14 +46,14 @@ export class TaskService {
 
   async filterTasksBy(filters: TaskFilterDto): Promise<PaginatedTasksDto> {
     const query: FilterQuery<Task> = { deletedAt: null };
-    if (filters.owner !== undefined) {
+    if (filters.owner != null) {
       try {
         await this.taskRepository.findOwnerById(String(filters.owner));
       } catch (e) {
         throw new NotFoundException("Owner doesn't exist");
       }
     }
-    if (filters.project !== undefined) {
+    if (filters.project != null) {
       try {
         await this.taskRepository.findProjectById(Number(filters.project));
       } catch (e) {
