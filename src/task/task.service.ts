@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, Post } from "@nestjs/common";
 import { TaskRepository } from "./task.repository";
 import { InjectRepository } from "@mikro-orm/nestjs";
-import { Task } from "./task.entity";
+import { Priority, Task } from "./task.entity";
 import { CreateTaskDto } from "./create-task.dto";
 import { FirebaseStorageService } from "../firebase/firebase.storage.service";
 import { FilterQuery, wrap } from "@mikro-orm/core";
-import { ITaskFilters } from "./taskfilters";
-import { populate } from "dotenv";
+import { TaskFilterDto } from "./taskfilters.dto";
+import { PaginatedTasksDto } from "./paginated-tasks.dto";
 
 @Injectable()
 export class TaskService {
@@ -44,16 +44,42 @@ export class TaskService {
     );
   }
 
-  async filterTasksBy(filters: ITaskFilters): Promise<Task[]> {
+  async filterTasksBy(filters: TaskFilterDto): Promise<PaginatedTasksDto> {
     const query: FilterQuery<Task> = { deletedAt: null };
+    if (filters?.owner) {
+      try {
+        await this.taskRepository.findOwnerById(String(filters.owner));
+      } catch (e) {
+        throw new NotFoundException("Owner doesn't exist");
+      }
+      query.owner = filters.owner;
+    }
 
-    if (filters.owner) query.owner = filters.owner;
-    if (filters.project) query.project = filters.project;
-    if (filters.priority) query.priority = filters.priority;
-    if (filters.status) query.status = filters.status;
-    if (filters.dueDate) query.dueDate = filters.dueDate;
+    if (filters?.project) {
+      try {
+        await this.taskRepository.findProjectById(Number(filters.project));
+      } catch (e) {
+        throw new NotFoundException("Project doesn't exist");
+      }
+      query.project = filters.project;
+    }
 
-    return await this.taskRepository.find(query);
+    if (filters?.priority) query.priority = filters.priority;
+    if (filters?.status) query.status = filters.status;
+    if (filters?.dueDate) query.dueDate = filters.dueDate;
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 1;
+    const [tasks, total] = await this.taskRepository.findAndCount(query, {
+      limit,
+      offset: (page - 1) * limit,
+      populate: ["files"],
+    });
+    return {
+      data: tasks,
+      total,
+      page,
+    };
   }
   async attachFile(taskId: number, file: Express.Multer.File): Promise<Task> {
     const task = await this.taskRepository.find(

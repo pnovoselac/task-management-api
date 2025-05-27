@@ -14,12 +14,12 @@ import {
   NotFoundException,
   Request,
   UseGuards,
+  ValidationPipe,
 } from "@nestjs/common";
 import { TaskService } from "./task.service";
 import { Task } from "./task.entity.js";
 import { CreateTaskDto } from "./create-task.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ITaskFilters } from "./taskfilters";
 import {
   ApiBearerAuth,
   ApiBody,
@@ -30,6 +30,8 @@ import {
 } from "@nestjs/swagger";
 import { ApiTaskQueries } from "../swagger/api.task.queries";
 import { AuthGuard } from "../auth/auth.guard";
+import { TaskFilterDto } from "./taskfilters.dto";
+import { PaginatedTasksDto } from "./paginated-tasks.dto";
 
 @Controller("tasks")
 @ApiBearerAuth("access-token")
@@ -64,12 +66,13 @@ export class TaskController {
   @ApiResponse({
     status: 200,
     description: "List of tasks matching the filters",
+    type: PaginatedTasksDto,
   })
-  async findAllTasks(@Query() filters: ITaskFilters): Promise<Task[]> {
-    if (Object.keys(filters).length > 0) {
-      return await this.taskService.filterTasksBy(filters);
-    }
-    return await this.taskService.findAllTasks();
+  async findAllTasks(
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    filters: TaskFilterDto
+  ): Promise<PaginatedTasksDto> {
+    return await this.taskService.filterTasksBy(filters);
   }
 
   @Post(":id/attach-file")

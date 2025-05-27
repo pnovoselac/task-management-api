@@ -8,6 +8,7 @@ import {
 import { Priority, Status } from "./task.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "user/user.entity";
+import { Type } from "class-transformer";
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -46,6 +47,7 @@ export class CreateTaskDto {
     description: "Due date for the task",
     example: "2025-04-15T00:00:00.000Z",
   })
+  @Type(() => Date)
   @IsDate()
   dueDate!: Date;
 
