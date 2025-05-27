@@ -46,29 +46,30 @@ export class TaskService {
 
   async filterTasksBy(filters: TaskFilterDto): Promise<PaginatedTasksDto> {
     const query: FilterQuery<Task> = { deletedAt: null };
-    if (filters.owner != null) {
+    if (filters?.owner) {
       try {
         await this.taskRepository.findOwnerById(String(filters.owner));
       } catch (e) {
         throw new NotFoundException("Owner doesn't exist");
       }
+      query.owner = filters.owner;
     }
-    if (filters.project != null) {
+
+    if (filters?.project) {
       try {
         await this.taskRepository.findProjectById(Number(filters.project));
       } catch (e) {
         throw new NotFoundException("Project doesn't exist");
       }
+      query.project = filters.project;
     }
 
-    if (filters.owner) query.owner = filters.owner;
-    if (filters.project) query.project = filters.project;
-    if (filters.priority) query.priority = filters.priority;
-    if (filters.status) query.status = filters.status;
-    if (filters.dueDate) query.dueDate = filters.dueDate;
+    if (filters?.priority) query.priority = filters.priority;
+    if (filters?.status) query.status = filters.status;
+    if (filters?.dueDate) query.dueDate = filters.dueDate;
 
-    const page = filters.page || 1;
-    const limit = filters.limit || 1;
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 1;
     const [tasks, total] = await this.taskRepository.findAndCount(query, {
       limit,
       offset: (page - 1) * limit,
